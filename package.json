@@ -1,0 +1,28 @@
+{
+  "name": "shopping-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/ui": "^4.11.2",
+    "@nuxtjs/supabase": "^2.0.10",
+    "@supabase/supabase-js": "^2.117.0",
+    "@vite-pwa/nuxt": "^1.1.1",
+    "nuxt": "^4.5.2",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/web-push": "^3.6.4",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.11"
+  }
+}
