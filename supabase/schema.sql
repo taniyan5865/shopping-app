@@ -99,6 +99,10 @@ create policy "select own household" on households
 create policy "select own household members" on household_members
   for select using (household_id in (select my_household_ids()));
 
+-- household_members: 自分自身のメンバー登録は削除可(グループ離脱)
+create policy "delete own membership" on household_members
+  for delete using (user_id = auth.uid());
+
 -- inventory_items
 create policy "select inventory" on inventory_items
   for select using (household_id in (select my_household_ids()));

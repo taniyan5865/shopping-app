@@ -2,6 +2,7 @@
 const { householdId, householdName, inviteCode, memberName, leaveHousehold } = useHousehold()
 const { isSupported, isSubscribed, checkSubscription, subscribe, unsubscribe } = usePush()
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 interface Member {
   display_name: string
@@ -50,6 +51,9 @@ async function togglePush() {
 
 async function handleLeave() {
   if (!confirm('このグループから離れますか？')) return
+  if (householdId.value && user.value) {
+    await supabase.from('household_members').delete().eq('household_id', householdId.value).eq('user_id', user.value.id)
+  }
   leaveHousehold()
   await navigateTo('/join')
 }

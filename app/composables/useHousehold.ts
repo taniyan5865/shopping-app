@@ -39,5 +39,36 @@ export function useHousehold() {
     memberName.value = null
   }
 
-  return { householdId, householdName, inviteCode, memberName, createHousehold, joinHousehold, leaveHousehold }
+  /** 同じGoogleアカウントで既に所属している世帯があれば、招待コード無しで自動復帰する */
+  async function restoreHouseholdFromAccount(userId: string) {
+    const { data, error } = await supabase
+      .from('household_members')
+      .select('household_id, display_name, joined_at, households(name, invite_code)')
+      .eq('user_id', userId)
+      .order('joined_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error || !data) return false
+
+    const household = data.households as unknown as { name: string; invite_code: string } | null
+    if (!household) return false
+
+    householdId.value = data.household_id
+    householdName.value = household.name
+    inviteCode.value = household.invite_code
+    memberName.value = data.display_name
+    return true
+  }
+
+  return {
+    householdId,
+    householdName,
+    inviteCode,
+    memberName,
+    createHousehold,
+    joinHousehold,
+    leaveHousehold,
+    restoreHouseholdFromAccount
+  }
 }
