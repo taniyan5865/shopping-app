@@ -1,13 +1,9 @@
-export default defineNuxtRouteMiddleware(async (to) => {
+export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.server) return
+  if (to.path === '/confirm') return
 
-  const supabase = useSupabaseClient()
   const user = useSupabaseUser()
-
-  if (!user.value) {
-    const { error } = await supabase.auth.signInAnonymously()
-    if (error) console.error('anonymous sign-in failed', error)
-  }
+  if (!user.value) return
 
   const { householdId } = useHousehold()
 

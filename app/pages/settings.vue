@@ -53,6 +53,13 @@ async function handleLeave() {
   leaveHousehold()
   await navigateTo('/join')
 }
+
+async function handleSignOut() {
+  if (!confirm('ログアウトしますか？')) return
+  leaveHousehold()
+  await supabase.auth.signOut()
+  await navigateTo('/join')
+}
 </script>
 
 <template>
@@ -95,6 +102,7 @@ async function handleLeave() {
     </section>
 
     <button class="leave" @click="handleLeave">グループから離れる</button>
+    <button class="leave" @click="handleSignOut">ログアウト</button>
   </div>
 </template>
 

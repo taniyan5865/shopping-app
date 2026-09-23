@@ -1,5 +1,23 @@
 <script setup lang="ts">
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 const { createHousehold, joinHousehold } = useHousehold()
+
+const loginLoading = ref(false)
+const loginError = ref('')
+
+async function loginWithGoogle() {
+  loginError.value = ''
+  loginLoading.value = true
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/confirm` }
+  })
+  if (error) {
+    loginError.value = error.message
+    loginLoading.value = false
+  }
+}
 
 const mode = ref<'create' | 'join'>('create')
 const householdName = ref('')
@@ -7,6 +25,12 @@ const inviteCodeInput = ref('')
 const displayName = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
+
+watchEffect(() => {
+  if (user.value && !displayName.value) {
+    displayName.value = (user.value.user_metadata?.full_name as string | undefined) || ''
+  }
+})
 
 async function submit() {
   errorMessage.value = ''
@@ -44,33 +68,42 @@ async function submit() {
     <h1>買い物管理アプリ</h1>
     <p class="lead">在庫・消費期限・購入リストを家族で共有できます</p>
 
-    <div class="tabs">
-      <button :class="{ active: mode === 'create' }" @click="mode = 'create'">新しく始める</button>
-      <button :class="{ active: mode === 'join' }" @click="mode = 'join'">招待コードで参加</button>
+    <div v-if="!user" class="login-box">
+      <button class="google-btn" :disabled="loginLoading" @click="loginWithGoogle">
+        {{ loginLoading ? '処理中...' : 'Googleでログイン' }}
+      </button>
+      <p v-if="loginError" class="error">{{ loginError }}</p>
     </div>
 
-    <form class="form" @submit.prevent="submit">
-      <label>
-        あなたの名前
-        <input v-model="displayName" type="text" placeholder="例：たろう" />
-      </label>
+    <template v-else>
+      <div class="tabs">
+        <button :class="{ active: mode === 'create' }" @click="mode = 'create'">新しく始める</button>
+        <button :class="{ active: mode === 'join' }" @click="mode = 'join'">招待コードで参加</button>
+      </div>
 
-      <label v-if="mode === 'create'">
-        家族・グループ名
-        <input v-model="householdName" type="text" placeholder="例：わが家" />
-      </label>
+      <form class="form" @submit.prevent="submit">
+        <label>
+          あなたの名前
+          <input v-model="displayName" type="text" placeholder="例：たろう" />
+        </label>
 
-      <label v-else>
-        招待コード
-        <input v-model="inviteCodeInput" type="text" maxlength="6" placeholder="例：AB12CD" style="text-transform: uppercase" />
-      </label>
+        <label v-if="mode === 'create'">
+          家族・グループ名
+          <input v-model="householdName" type="text" placeholder="例：わが家" />
+        </label>
 
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <label v-else>
+          招待コード
+          <input v-model="inviteCodeInput" type="text" maxlength="6" placeholder="例：AB12CD" style="text-transform: uppercase" />
+        </label>
 
-      <button type="submit" class="submit" :disabled="loading">
-        {{ loading ? '処理中...' : mode === 'create' ? '作成する' : '参加する' }}
-      </button>
-    </form>
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <button type="submit" class="submit" :disabled="loading">
+          {{ loading ? '処理中...' : mode === 'create' ? '作成する' : '参加する' }}
+        </button>
+      </form>
+    </template>
   </div>
 </template>
 
@@ -87,6 +120,24 @@ h1 {
 .lead {
   color: #666;
   margin-bottom: 24px;
+}
+.login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 0;
+}
+.google-btn {
+  padding: 12px 24px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.google-btn:disabled {
+  opacity: 0.6;
 }
 .tabs {
   display: flex;
